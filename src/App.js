@@ -1,26 +1,49 @@
 import React from 'react';
-import logo from './logo.svg';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
 
+const GET_REPOSITORIES_OF_ORGANIZATION = gql`
+  {
+    organization(login: "the-road-to-learn-react") {
+      repositories(first: 20) {
+        edges {
+          node {
+            id
+            name
+            url
+            viewerHasStarred
+          }
+        }
+      }
+    }
+  }
+`;
+
+const App = () => (
+  <Query query={GET_REPOSITORIES_OF_ORGANIZATION}>
+    {({ data: { organization }, loading }) => {
+      if (loading || !organization) {
+        return <div>Loading ...</div>;
+      }
+      return (
+        <RepositoryList repositories={organization.repositories} />
+      );
+    }}
+  </Query>
+);
+const RepositoryList = ({ repositories }) => (
+  <ul>
+    {repositories.edges.map(({ node }) => {
+      return (
+        <li key={node.id}>
+          <a href={node.url}>{node.name}</a>
+        </li>
+      );
+    })}
+  </ul>
+);
 export default App;
+
+// https://www.robinwieruch.de/react-apollo-client-example
